@@ -28,6 +28,7 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      - GRPC_ONBOARDING_ADDRESS=static://bpm-onboarding-service:9090
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -69,6 +70,18 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - bpm-network
+    restart: unless-stopped
+
+  bpm-onboarding-service:
+    build:
+      context: .
+      dockerfile: ./bpm-onboarding-service/Dockerfile
+    container_name: bpm-onboarding-service
+    ports:
+      - "8084:8084"
+      - "9090:9090"
     networks:
       - bpm-network
     restart: unless-stopped

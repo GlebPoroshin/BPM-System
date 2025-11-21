@@ -1,0 +1,138 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.rut.glebporoshin.sop",
+    "module": "bpm-grpc-contracts",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "io.grpc",
+          "module": "grpc-stub",
+          "version": {
+            "requires": "1.66.0"
+          }
+        },
+        {
+          "group": "io.grpc",
+          "module": "grpc-protobuf",
+          "version": {
+            "requires": "1.66.0"
+          }
+        },
+        {
+          "group": "com.google.protobuf",
+          "module": "protobuf-java",
+          "version": {
+            "requires": "3.25.3"
+          }
+        },
+        {
+          "group": "jakarta.annotation",
+          "module": "jakarta.annotation-api",
+          "version": {
+            "requires": "2.1.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bpm-grpc-contracts-1.0.0-SNAPSHOT.jar",
+          "url": "bpm-grpc-contracts-1.0.0-SNAPSHOT.jar",
+          "size": 99744,
+          "sha512": "09f9f34e8b8809897ed5025dbedbc7e40afe8bba32fcafbbd66b1efcf551a5445f357d7ee021e6dea6604be18d6b3a6902b82c725fc87d12fc9eb5ec087d5dd5",
+          "sha256": "3f58cc4ea30f20437c2800109d49a3275436af7715c2643712156860ecbc59cb",
+          "sha1": "c81dcf288f5ef1863d9bf9d6b214e57e700c07f0",
+          "md5": "05d2d7803dd9f80e69ca7ace4cb0f0bf"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "io.grpc",
+          "module": "grpc-kotlin-stub",
+          "version": {
+            "requires": "1.4.1"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.9.25"
+          }
+        },
+        {
+          "group": "io.grpc",
+          "module": "grpc-stub",
+          "version": {
+            "requires": "1.66.0"
+          }
+        },
+        {
+          "group": "io.grpc",
+          "module": "grpc-protobuf",
+          "version": {
+            "requires": "1.66.0"
+          }
+        },
+        {
+          "group": "com.google.protobuf",
+          "module": "protobuf-java",
+          "version": {
+            "requires": "3.25.3"
+          }
+        },
+        {
+          "group": "jakarta.annotation",
+          "module": "jakarta.annotation-api",
+          "version": {
+            "requires": "2.1.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bpm-grpc-contracts-1.0.0-SNAPSHOT.jar",
+          "url": "bpm-grpc-contracts-1.0.0-SNAPSHOT.jar",
+          "size": 99744,
+          "sha512": "09f9f34e8b8809897ed5025dbedbc7e40afe8bba32fcafbbd66b1efcf551a5445f357d7ee021e6dea6604be18d6b3a6902b82c725fc87d12fc9eb5ec087d5dd5",
+          "sha256": "3f58cc4ea30f20437c2800109d49a3275436af7715c2643712156860ecbc59cb",
+          "sha1": "c81dcf288f5ef1863d9bf9d6b214e57e700c07f0",
+          "md5": "05d2d7803dd9f80e69ca7ace4cb0f0bf"
+        }
+      ]
+    }
+  ]
+}
