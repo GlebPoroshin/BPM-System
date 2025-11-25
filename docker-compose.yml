@@ -74,6 +74,25 @@ services:
       - bpm-network
     restart: unless-stopped
 
+  bpm-compliance-service:
+    build:
+      context: .
+      dockerfile: ./bpm-compliance-service/Dockerfile
+    container_name: bpm-compliance-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - bpm-network
+    restart: unless-stopped
+
   bpm-onboarding-service:
     build:
       context: .
