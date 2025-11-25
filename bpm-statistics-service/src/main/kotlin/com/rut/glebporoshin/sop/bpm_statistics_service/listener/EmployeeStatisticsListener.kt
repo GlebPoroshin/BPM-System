@@ -28,8 +28,8 @@ class EmployeeStatisticsListener(
                     Argument(name = "x-dead-letter-routing-key", value = "dlq.statistics.employee.created")
                 ]
             ),
-            exchange = Exchange(name = "bpm-exchange", type = "topic", durable = "true"),
-            key = ["employee.created"]
+            exchange = Exchange(name = "bpm-employee-created", type = "fanout", durable = "true"),
+            key = [""]
         )]
     )
     fun handleEmployeeCreatedEvent(
@@ -64,8 +64,8 @@ class EmployeeStatisticsListener(
     @RabbitListener(
         bindings = [QueueBinding(
             value = Queue(name = "statistics-employee-created-queue.dlq", durable = "true"),
-            exchange = Exchange(name = "dlx-exchange", type = "topic", durable = "true"),
-            key = ["dlq.statistics.#"]
+            exchange = Exchange(name = "dlx-exchange", type = "direct", durable = "true"),
+            key = ["dlq.statistics.employee.created"]
         )]
     )
     fun handleDlqMessages(@Payload failedMessage: Any) {
@@ -76,4 +76,3 @@ class EmployeeStatisticsListener(
         private val log = LoggerFactory.getLogger(EmployeeStatisticsListener::class.java)
     }
 }
-
