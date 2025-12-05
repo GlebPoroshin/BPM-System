@@ -1,0 +1,88 @@
+@startuml
+title BPM System (Component View)
+
+actor "REST/GraphQL Clients" as RestClients
+actor "WebSocket Clients\n(ws://.../ws/notifications?userId=...)" as WsClients
+
+package "bpm-main-service" as Main {
+  [REST/GraphQL API]
+  [gRPC Client\nOnboarding]
+}
+
+package "bpm-onboarding-service" as Onboarding {
+  [gRPC Server\ncreateOnboarding/...]
+}
+
+cloud "RabbitMQ" as RMQ {
+  rectangle "fanout exch\nbpm-employee-created" as ExCreated
+  rectangle "fanout exch\nbpm-employee-dismissed" as ExDismissed
+  rectangle "direct exch\ndlx-exchange" as DLX
+}
+
+package "bpm-audit-service" as Audit {
+  queue "audit-employee-created-queue" as QAuditC
+  queue "audit-employee-dismissed-queue" as QAuditD
+  queue "audit-employee-queue.dlq" as QAuditDLQ
+}
+
+package "bpm-statistics-service" as Stats {
+  queue "statistics-employee-created-queue" as QStatsC
+  queue "statistics-employee-created-queue.dlq" as QStatsDLQ
+}
+
+package "bpm-compliance-service" as Compliance {
+  queue "compliance-employee-queue" as QCompC
+  queue "compliance-employee-dismissed-queue" as QCompD
+  queue "compliance-queue.dlq" as QCompDLQ
+}
+
+package "notification-service" as Notify {
+  queue "notification-employee-created-queue" as QNotifC
+  queue "notification-employee-dismissed-queue" as QNotifD
+  queue "notification-queue.dlq" as QNotifDLQ
+  [REST API\n/broadcast, /unicast, /stats] as NotifyREST
+  [WebSocket Endpoint\n/ws/notifications] as NotifyWS
+}
+
+RestClients --> [REST/GraphQL API]
+WsClients --> NotifyWS
+
+[gRPC Client\nOnboarding] --> [gRPC Server\ncreateOnboarding/...] : gRPC
+
+[REST/GraphQL API] --> ExCreated : EmployeeCreatedEvent
+[REST/GraphQL API] --> ExDismissed : EmployeeDismissedEvent
+
+ExCreated --> QAuditC
+ExDismissed --> QAuditD
+
+ExCreated --> QStatsC
+
+ExCreated --> QCompC
+ExDismissed --> QCompD
+
+ExCreated --> QNotifC
+ExDismissed --> QNotifD
+
+' DLQ bindings (direct exchange dlx-exchange)
+QAuditC -[#gray,dashed]-> DLX
+QAuditD -[#gray,dashed]-> DLX
+QAuditDLQ <-[#gray,dashed]- DLX : dlq.audit.*
+
+QStatsC -[#gray,dashed]-> DLX
+QStatsDLQ <-[#gray,dashed]- DLX : dlq.statistics.*
+
+QCompC -[#gray,dashed]-> DLX
+QCompD -[#gray,dashed]-> DLX
+QCompDLQ <-[#gray,dashed]- DLX : dlq.compliance.*
+
+QNotifC -[#gray,dashed]-> DLX
+QNotifD -[#gray,dashed]-> DLX
+QNotifDLQ <-[#gray,dashed]- DLX : dlq.notification.*
+
+RestClients --> NotifyREST
+NotifyREST --> NotifyWS : broadcast/unicast\n(sent via handler)
+
+QNotifC --> NotifyWS : push messages
+QNotifD --> NotifyWS : push messages
+
+@enduml
