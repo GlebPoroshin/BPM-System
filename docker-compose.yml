@@ -16,6 +16,24 @@ services:
     networks:
       - bpm-network
 
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: bpm-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - bpm-network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: bpm-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - bpm-network
+
   bpm-main-service:
     build:
       context: .
@@ -29,9 +47,12 @@ services:
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
       - GRPC_ONBOARDING_ADDRESS=static://bpm-onboarding-service:9090
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped
@@ -48,9 +69,12 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped
@@ -67,9 +91,12 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped
@@ -86,9 +113,12 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped
@@ -105,9 +135,12 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped
@@ -120,6 +153,11 @@ services:
     ports:
       - "8084:8084"
       - "9090:9090"
+    environment:
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      zipkin:
+        condition: service_started
     networks:
       - bpm-network
     restart: unless-stopped

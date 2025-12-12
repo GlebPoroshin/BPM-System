@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "bpm-services"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets:
+          - "bpm-main-service:8080"
+          - "bpm-audit-service:8082"
+          - "bpm-statistics-service:8083"
+          - "bpm-compliance-service:8085"
+          - "notification-service:8086"
+          - "bpm-onboarding-service:8084"

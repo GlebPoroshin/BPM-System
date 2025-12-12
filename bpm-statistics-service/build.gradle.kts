@@ -27,12 +27,19 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     
     // RabbitMQ
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     
     // Jackson для сериализации
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // Observability: metrics, tracing, logging
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
     
     // Для тестов
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -49,4 +56,3 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
