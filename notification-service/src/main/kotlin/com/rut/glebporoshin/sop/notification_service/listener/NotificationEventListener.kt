@@ -44,6 +44,15 @@ class NotificationEventListener(
         runCatching {
             val message = "Новый сотрудник: ${event.firstName} ${event.lastName} (${event.position})"
             webSocketHandler.broadcast(message)
+
+            val personalMessage = "Ваш процесс онбординга запущен: ${event.onboardingProcessId}"
+            val personalDelivered = webSocketHandler.sendToUser(event.employeeId, personalMessage)
+            log.info(
+                "Unicast onboarding notification to employee {} delivered={}",
+                event.employeeId,
+                personalDelivered
+            )
+
             channel.basicAck(deliveryTag, false)
         }.onFailure { e ->
             log.error("Failed to process EmployeeCreatedEvent: {}", event, e)
@@ -73,6 +82,15 @@ class NotificationEventListener(
         runCatching {
             val message = "Сотрудник ${event.employeeId} начал увольнение: процесс ${event.dismissalProcessId}"
             webSocketHandler.broadcast(message)
+
+            val personalMessage = "Ваш процесс увольнения запущен: ${event.dismissalProcessId}"
+            val personalDelivered = webSocketHandler.sendToUser(event.employeeId, personalMessage)
+            log.info(
+                "Unicast dismissal notification to employee {} delivered={}",
+                event.employeeId,
+                personalDelivered
+            )
+
             channel.basicAck(deliveryTag, false)
         }.onFailure { e ->
             log.error("Failed to process EmployeeDismissedEvent: {}", event, e)

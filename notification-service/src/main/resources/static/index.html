@@ -83,7 +83,7 @@
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send('PING');
             }
-        }, 10000);
+        }, 100000);
 
         connect();
     </script>
