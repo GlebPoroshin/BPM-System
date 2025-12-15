@@ -1,0 +1,80 @@
+# BPM GraphQL Schema
+
+type Department {
+    id: ID!
+    name: String!
+    leadId: String!
+}
+
+type Team {
+    id: ID!
+    name: String!
+    leadId: String!
+    departmentId: String!
+    department: Department
+}
+
+type Employee {
+    employeeId: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String!
+    position: String!
+    department: Department!
+    team: Team!
+}
+
+type OnboardingProcess {
+    employeeId: ID!
+    onboardingProcessId: ID!
+    position: String!
+    department: Department!
+    team: Team!
+}
+
+type DismissalProcess {
+    employeeId: ID!
+    dismissalProcessId: ID!
+}
+
+type Query {
+    employees: [Employee]
+    
+    employeeById(id: ID!): Employee
+    
+    departments: [Department]
+    
+    departmentById(id: ID!): Department
+    
+    teams: [Team]
+    
+    teamById(id: ID!): Team
+    
+    teamsByDepartmentId(departmentId: ID!): [Team]
+}
+
+input CreateEmployeeInput {
+    firstName: String!
+    lastName: String!
+    passportSeries: String!
+    passportNumber: String!
+    email: String!
+    phone: String!
+    contactEmail: String!
+    departmentId: String!
+    teamId: String!
+    position: String!
+}
+
+input StartDismissalInput {
+    employeeId: String!
+    lastWorkingDay: String!
+}
+
+type Mutation {
+    createEmployee(input: CreateEmployeeInput!): OnboardingProcess
+    
+    startDismissal(input: StartDismissalInput!): DismissalProcess
+}
+
