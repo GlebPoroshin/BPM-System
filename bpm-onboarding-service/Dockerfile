@@ -26,7 +26,7 @@ USER spring:spring
 
 COPY --from=builder /app/bpm-onboarding-service/build/libs/*.jar app.jar
 
-EXPOSE 8084 9090
+EXPOSE 8084 8084
 
 ENV JAVA_OPTS="-Xms128m -Xmx256m"
 

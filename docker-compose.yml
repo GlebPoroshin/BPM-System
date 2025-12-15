@@ -33,6 +33,13 @@ services:
       - "9090:9090"
     networks:
       - bpm-network
+    depends_on:
+      - bpm-audit-service
+      - bpm-compliance-service
+      - bpm-main-service
+      - bpm-onboarding-service
+      - bpm-statistics-service
+      - notification-service
 
   bpm-main-service:
     build:
@@ -46,7 +53,7 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
-      - GRPC_ONBOARDING_ADDRESS=static://bpm-onboarding-service:9090
+      - GRPC_ONBOARDING_ADDRESS=static://bpm-onboarding-service:9091
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
       rabbitmq:
@@ -152,7 +159,7 @@ services:
     container_name: bpm-onboarding-service
     ports:
       - "8084:8084"
-      - "9090:9090"
+      - "9091:9091"
     environment:
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:
