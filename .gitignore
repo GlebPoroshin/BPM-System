@@ -27,4 +27,6 @@ tmp/
 *.swp
 *.swo
 
+jenkins_home/
+
 !**/gradle/wrapper/gradle-wrapper.jar
