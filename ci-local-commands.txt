@@ -1,0 +1,26 @@
+# Jenkins (отдельно от BPM)
+# Создать volume под данные Jenkins (чтобы плагины сохранились)
+docker volume create bpm_jenkins_home
+
+# Установить плагины в volume (git, workflow-aggregator, gitea, github-branch-source, credentials, docker-workflow)
+docker run --rm -u root \
+  -v bpm_jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts-jdk17 \
+  jenkins-plugin-cli --plugins "git workflow-aggregator gitea github-branch-source credentials-binding docker-workflow"
+
+# Запустить Jenkins
+docker run -d --name bpm-jenkins --restart unless-stopped \
+  -p 8088:8080 -p 50000:50000 \
+  -u root \
+  -v bpm_jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/jenkins:lts-jdk17
+
+# Gitea (если нужен локальный git-сервер; по умолчанию порт 3000 UI, 2222 SSH)
+docker volume create gitea-data
+docker run -d --name bpm-gitea --restart unless-stopped \
+  -p 3000:3000 -p 2222:22 \
+  -v gitea-data:/data \
+  gitea/gitea:1.22.0
+
+# Jenkinsfile использовать из корня проекта; Definition: Pipeline script (вставить из файла), SCM не обязателен.
