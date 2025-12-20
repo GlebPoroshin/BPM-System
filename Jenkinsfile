@@ -1,9 +1,14 @@
 pipeline {
     agent any
-    
+
     options {
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
+    environment {
+        // Чтобы кеши были изолированы в пределах workspace и не конфликтовали между разными билдами на одном агенте
+        GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
 
     stages {
@@ -12,7 +17,7 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage("Build Contracts") {
             steps {
                 sh '''
@@ -23,16 +28,45 @@ pipeline {
                 '''
             }
         }
-        
+
         stage("Build Services (Verification)") {
-            steps {
-                sh '''
-                  set -e
-                  ./bpm-main-service/gradlew -p bpm-main-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
-                  ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
-                  ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
-                  ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
-                '''
+            failFast true
+            parallel {
+                stage("bpm-main-service") {
+                    steps {
+                        sh '''
+                          set -e
+                          ./bpm-main-service/gradlew -p bpm-main-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                        '''
+                    }
+                }
+
+                stage("bpm-onboarding-service") {
+                    steps {
+                        sh '''
+                          set -e
+                          ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                        '''
+                    }
+                }
+
+                stage("bpm-audit-service") {
+                    steps {
+                        sh '''
+                          set -e
+                          ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                        '''
+                    }
+                }
+
+                stage("bpm-compliance-service") {
+                    steps {
+                        sh '''
+                          set -e
+                          ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                        '''
+                    }
+                }
             }
         }
 
