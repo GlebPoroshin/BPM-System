@@ -1,4 +1,4 @@
-FROM gradle:8.5-jdk17-alpine AS builder
+FROM gradle:8.5-jdk17 AS builder
 WORKDIR /app
 COPY bpm-api /app/bpm-api
 COPY bpm-events-contracts /app/bpm-events-contracts
@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=cache,target=/home/gradle/.m2 \
     gradle bootJar --no-daemon -x test
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/bpm-main-service/build/libs/*.jar app.jar
 EXPOSE 8080
