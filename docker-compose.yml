@@ -42,7 +42,7 @@ services:
       - notification-service
 
   jenkins:
-    image: jenkins/jenkins:lts
+    image: jenkins/jenkins:lts-jdk17
     container_name: bpm-jenkins
     privileged: true
     user: root

@@ -17,9 +17,9 @@ pipeline {
             steps {
                 sh '''
                   set -e
-                  ./bpm-events-contracts/gradlew -p bpm-events-contracts publishToMavenLocal --no-daemon
-                  ./bpm-grpc-contracts/gradlew -p bpm-grpc-contracts publishToMavenLocal --no-daemon
-                  ./bpm-api/gradlew -p bpm-api publishToMavenLocal --no-daemon
+                  ./bpm-events-contracts/gradlew -p bpm-events-contracts publishToMavenLocal --no-daemon -Porg.gradle.java.installations.auto-detect=false
+                  ./bpm-grpc-contracts/gradlew -p bpm-grpc-contracts publishToMavenLocal --no-daemon -Porg.gradle.java.installations.auto-detect=false
+                  ./bpm-api/gradlew -p bpm-api publishToMavenLocal --no-daemon -Porg.gradle.java.installations.auto-detect=false
                 '''
             }
         }
@@ -28,11 +28,11 @@ pipeline {
             steps {
                 sh '''
                   set -e
-                  ./bpm-main-service/gradlew -p bpm-main-service clean bootJar --no-daemon -x test
-                  ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test
-                  ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test
-                  ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test
-                  ./notification-service/gradlew -p notification-service clean bootJar --no-daemon -x test
+                  ./bpm-main-service/gradlew -p bpm-main-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                  ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                  ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                  ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
+                  ./notification-service/gradlew -p notification-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
                 '''
             }
         }
