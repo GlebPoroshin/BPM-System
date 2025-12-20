@@ -39,7 +39,7 @@ services:
       - bpm-main-service
       - bpm-onboarding-service
       # - bpm-statistics-service
-      - notification-service
+      # - notification-service
 
   jenkins:
     image: jenkins/jenkins:lts-jdk17
@@ -160,31 +160,31 @@ services:
       - bpm-network
     restart: unless-stopped
 
-  notification-service:
-    build:
-      context: .
-      dockerfile: ./notification-service/Dockerfile
-    container_name: notification-service
-    ports:
-      - "8086:8086"
-    deploy:
-      resources:
-        limits:
-          memory: 384M
-    environment:
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      zipkin:
-        condition: service_started
-    networks:
-      - bpm-network
-    restart: unless-stopped
+  # notification-service:
+  #   build:
+  #     context: .
+  #     dockerfile: ./notification-service/Dockerfile
+  #   container_name: notification-service
+  #   ports:
+  #     - "8086:8086"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 384M
+  #   environment:
+  #     - SPRING_RABBITMQ_HOST=rabbitmq
+  #     - SPRING_RABBITMQ_PORT=5672
+  #     - SPRING_RABBITMQ_USERNAME=guest
+  #     - SPRING_RABBITMQ_PASSWORD=guest
+  #     - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #     zipkin:
+  #       condition: service_started
+  #   networks:
+  #     - bpm-network
+  #   restart: unless-stopped
 
   bpm-onboarding-service:
     build:

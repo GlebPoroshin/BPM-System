@@ -32,7 +32,6 @@ pipeline {
                   ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
                   ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
                   ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
-                  ./notification-service/gradlew -p notification-service clean bootJar --no-daemon -x test -Porg.gradle.java.installations.auto-detect=false
                 '''
             }
         }
