@@ -1,108 +1,54 @@
-def contractModules = [
-    'bpm-events-contracts',
-    'bpm-grpc-contracts',
-    'bpm-api'
-]
-
-def services = [
-    'bpm-main-service',
-    'bpm-audit-service',
-    'bpm-statistics-service',
-    'bpm-compliance-service',
-    'bpm-onboarding-service',
-    'notification-service'
-]
-
 pipeline {
     agent any
+    
     options {
-        timestamps()
-        ansiColor('xterm')
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '5'))
     }
 
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
                 checkout scm
             }
         }
-
-        stage('Detect changes') {
-            steps {
-                script {
-                    sh 'git fetch --all --prune'
-                    def diff = sh(
-                        script: """
-                          set -e
-                          git diff --name-only origin/${env.BRANCH_NAME}..HEAD 2>/dev/null || git diff --name-only HEAD~1..HEAD || true
-                        """.stripIndent(),
-                        returnStdout: true
-                    ).trim()
-
-                    def changedDirs = diff ? diff.split("\\n")*.tokenize('/')*.getAt(0).unique().findAll { it } : []
-                    // Если diff пустой (первый билд или нет origin/BRANCH), соберём всё
-                    if (changedDirs.isEmpty()) {
-                        currentBuild.description = "No diff detected; building all"
-                        env.REBUILD_ALL = 'true'
-                    } else {
-                        currentBuild.description = "Changed: ${changedDirs.join(', ')}"
-                        env.CHANGED_DIRS = changedDirs.join(' ')
-                    }
-
-                    // Вычисляем флаги
-                    def needContracts = (env.REBUILD_ALL == 'true') || changedDirs.any { it in contractModules }
-                    env.NEED_CONTRACTS = needContracts ? 'true' : 'false'
-
-                    def servicesToBuild = (env.REBUILD_ALL == 'true') ? services : changedDirs.findAll { it in services }
-                    env.SERVICES_TO_BUILD = servicesToBuild.join(' ')
-                }
-            }
-        }
-
-        stage('Publish contracts') {
-            when { expression { env.NEED_CONTRACTS == 'true' } }
+        
+        stage("Build Contracts") {
             steps {
                 sh '''
                   set -e
-                  cd bpm-events-contracts && ./gradlew publishToMavenLocal --no-daemon
-                  cd ../bpm-grpc-contracts && ./gradlew publishToMavenLocal --no-daemon
-                  cd ../bpm-api && ./gradlew publishToMavenLocal --no-daemon
+                  ./bpm-events-contracts/gradlew -p bpm-events-contracts publishToMavenLocal --no-daemon
+                  ./bpm-grpc-contracts/gradlew -p bpm-grpc-contracts publishToMavenLocal --no-daemon
+                  ./bpm-api/gradlew -p bpm-api publishToMavenLocal --no-daemon
                 '''
             }
         }
-
-        stage('Build services') {
-            when { expression { env.SERVICES_TO_BUILD?.trim() } }
+        
+        stage("Build Services") {
             steps {
-                script {
-                    env.SERVICES_TO_BUILD.split().each { svc ->
-                        sh """
-                          set -e
-                          cd ${svc} && ./gradlew clean build --no-daemon -x test
-                        """
-                    }
-                }
+                sh '''
+                  set -e
+                  # Build only what is needed
+                  ./bpm-main-service/gradlew -p bpm-main-service clean bootJar --no-daemon -x test
+                  ./bpm-onboarding-service/gradlew -p bpm-onboarding-service clean bootJar --no-daemon -x test
+                  ./bpm-audit-service/gradlew -p bpm-audit-service clean bootJar --no-daemon -x test
+                  ./bpm-compliance-service/gradlew -p bpm-compliance-service clean bootJar --no-daemon -x test
+                  ./notification-service/gradlew -p notification-service clean bootJar --no-daemon -x test
+                  # ./bpm-statistics-service/gradlew -p bpm-statistics-service clean bootJar --no-daemon -x test
+                '''
             }
         }
-
-        stage('Docker build') {
-            when { expression { env.SERVICES_TO_BUILD?.trim() } }
+        
+        stage("Docker Deploy") {
             steps {
-                sh "docker-compose build ${env.SERVICES_TO_BUILD}"
+                sh '''
+                  set -e
+                  # We only build and restart the services we just built
+                  docker-compose build bpm-main-service bpm-onboarding-service bpm-audit-service bpm-compliance-service notification-service
+                  docker-compose up -d bpm-main-service bpm-onboarding-service bpm-audit-service bpm-compliance-service notification-service
+                '''
             }
-        }
-
-        stage('Docker up') {
-            when { expression { env.SERVICES_TO_BUILD?.trim() } }
-            steps {
-                sh "docker-compose up -d ${env.SERVICES_TO_BUILD}"
-            }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: '**/build/reports/**', allowEmptyArchive: true
         }
     }
 }
+
