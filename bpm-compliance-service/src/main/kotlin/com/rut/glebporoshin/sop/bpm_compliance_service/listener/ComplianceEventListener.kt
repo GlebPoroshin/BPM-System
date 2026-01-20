@@ -2,9 +2,11 @@ package com.rut.glebporoshin.sop.bpm_compliance_service.listener
 
 import com.rabbitmq.client.Channel
 import com.rut.glebporoshin.sop.bpm_compliance_service.service.ComplianceService
+import com.rut.glebporoshin.sop.bpm_compliance_service.tracing.MdcUtils
 import com.rut.glebporoshin.sop.events.EmployeeCreatedEvent
 import com.rut.glebporoshin.sop.events.EmployeeDismissedEvent
 import org.slf4j.LoggerFactory
+import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.Argument
 import org.springframework.amqp.rabbit.annotation.Exchange
 import org.springframework.amqp.rabbit.annotation.Queue
@@ -14,7 +16,9 @@ import org.springframework.amqp.support.AmqpHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
+
 
 @Component
 class ComplianceEventListener(
@@ -40,18 +44,26 @@ class ComplianceEventListener(
     fun handleEmployeeCreatedEvent(
         @Payload event: EmployeeCreatedEvent,
         channel: Channel,
-        @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long
+        @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long,
+        message: Message,
     ) {
-        runCatching {
-            if (!processedEvents.add("created-${event.employeeId}")) {
+        val correlationId = resolveHeaderId(message.messageProperties.correlationId)
+        val traceId = resolveHeaderId(message.messageProperties.headers["X-B3-TraceId"])
+
+        MdcUtils.withMdc(correlationId, traceId) {
+            runCatching {
+                if (!processedEvents.add("created-${event.employeeId}")) {
+                    log.warn("Повторное событие найма для сотрудника {}", event.employeeId)
+                    channel.basicAck(deliveryTag, false)
+                    return@runCatching
+                }
+
+                complianceService.registerOnboarding(event, MdcUtils.currentCorrelationId(), MdcUtils.currentTraceId())
                 channel.basicAck(deliveryTag, false)
-                return@runCatching
+            }.onFailure { e ->
+                log.error("Ошибка обработки события EmployeeCreatedEvent: {}. Отправка в DLQ", event, e)
+                channel.basicNack(deliveryTag, false, false)
             }
-            complianceService.registerOnboarding(event)
-            channel.basicAck(deliveryTag, false)
-        }.onFailure { e ->
-            log.error("Failed to process EmployeeCreatedEvent: {}. Sending to DLQ", event, e)
-            channel.basicNack(deliveryTag, false, false)
         }
     }
 
@@ -72,18 +84,26 @@ class ComplianceEventListener(
     fun handleEmployeeDismissedEvent(
         @Payload event: EmployeeDismissedEvent,
         channel: Channel,
-        @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long
+        @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long,
+        message: Message,
     ) {
-        runCatching {
-            if (!processedEvents.add("dismissed-${event.employeeId}-${event.dismissalProcessId}")) {
+        val correlationId = resolveHeaderId(message.messageProperties.correlationId)
+        val traceId = resolveHeaderId(message.messageProperties.headers["X-B3-TraceId"])
+
+        MdcUtils.withMdc(correlationId, traceId) {
+            runCatching {
+                if (!processedEvents.add("dismissed-${event.employeeId}-${event.dismissalProcessId}")) {
+                    log.warn("Повторное событие увольнения для сотрудника {}", event.employeeId)
+                    channel.basicAck(deliveryTag, false)
+                    return@runCatching
+                }
+
+                complianceService.registerDismissal(event, MdcUtils.currentCorrelationId(), MdcUtils.currentTraceId())
                 channel.basicAck(deliveryTag, false)
-                return@runCatching
+            }.onFailure { e ->
+                log.error("Ошибка обработки события EmployeeDismissedEvent: {}. Отправка в DLQ", event, e)
+                channel.basicNack(deliveryTag, false, false)
             }
-            complianceService.registerDismissal(event)
-            channel.basicAck(deliveryTag, false)
-        }.onFailure { e ->
-            log.error("Failed to process EmployeeDismissedEvent: {}. Sending to DLQ", event, e)
-            channel.basicNack(deliveryTag, false, false)
         }
     }
 
@@ -95,7 +115,16 @@ class ComplianceEventListener(
         )]
     )
     fun handleDlqMessages(@Payload failedMessage: Any) {
-        log.error("Message received in DLQ: {}", failedMessage)
+        log.error("Сообщение в DLQ комплаенса: {}", failedMessage)
+    }
+
+    private fun resolveHeaderId(header: Any?): String? {
+        return when (header) {
+            null -> null
+            is String -> header.trim().takeIf { it.isNotEmpty() }
+            is ByteArray -> String(header, StandardCharsets.UTF_8).trim().takeIf { it.isNotEmpty() }
+            else -> header.toString().trim().takeIf { it.isNotEmpty() }
+        }
     }
 
     companion object {
