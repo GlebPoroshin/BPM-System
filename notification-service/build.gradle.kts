@@ -31,6 +31,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // Swagger UI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
+
     // Observability: metrics, tracing, logging
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")

@@ -31,6 +31,7 @@ dependencyManagement {
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.13")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
