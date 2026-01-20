@@ -2,9 +2,9 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: bpm-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    expose:
+      - "5672"
+      - "15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -19,8 +19,8 @@ services:
   zipkin:
     image: openzipkin/zipkin
     container_name: bpm-zipkin
-    ports:
-      - "9411:9411"
+    expose:
+      - "9411"
     networks:
       - bpm-network
 
@@ -29,13 +29,14 @@ services:
     container_name: bpm-prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     networks:
       - bpm-network
     depends_on:
       - bpm-audit-service
       - bpm-compliance-service
+      - bpm-gateway-service
       - bpm-main-service
       - bpm-onboarding-service
       - bpm-statistics-service
@@ -44,8 +45,8 @@ services:
   grafana:
     image: grafana/grafana
     container_name: bpm-grafana
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
@@ -54,13 +55,34 @@ services:
     networks:
       - bpm-network
 
+  bpm-gateway-service:
+    build:
+      context: .
+      dockerfile: ./bpm-gateway-service/Dockerfile
+    container_name: bpm-gateway-service
+    ports:
+      - "8081:8081"
+    environment:
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      - bpm-audit-service
+      - bpm-compliance-service
+      - bpm-main-service
+      - bpm-onboarding-service
+      - bpm-statistics-service
+      - notification-service
+      - zipkin
+    networks:
+      - bpm-network
+    restart: unless-stopped
+
   bpm-main-service:
     build:
       context: .
       dockerfile: ./bpm-main-service/Dockerfile
     container_name: bpm-main-service
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -82,8 +104,8 @@ services:
       context: .
       dockerfile: ./bpm-audit-service/Dockerfile
     container_name: bpm-audit-service
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -104,8 +126,8 @@ services:
       context: .
       dockerfile: ./bpm-statistics-service/Dockerfile
     container_name: bpm-statistics-service
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -126,8 +148,8 @@ services:
       context: .
       dockerfile: ./bpm-compliance-service/Dockerfile
     container_name: bpm-compliance-service
-    ports:
-      - "8085:8085"
+    expose:
+      - "8085"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -148,8 +170,8 @@ services:
       context: .
       dockerfile: ./notification-service/Dockerfile
     container_name: notification-service
-    ports:
-      - "8086:8086"
+    expose:
+      - "8086"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -170,9 +192,9 @@ services:
       context: .
       dockerfile: ./bpm-onboarding-service/Dockerfile
     container_name: bpm-onboarding-service
-    ports:
-      - "8084:8084"
-      - "9091:9091"
+    expose:
+      - "8084"
+      - "9091"
     environment:
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     depends_on:

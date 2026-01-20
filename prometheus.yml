@@ -6,6 +6,7 @@ scrape_configs:
     metrics_path: "/actuator/prometheus"
     static_configs:
       - targets:
+          - "bpm-gateway-service:8081"
           - "bpm-main-service:8080"
           - "bpm-audit-service:8082"
           - "bpm-statistics-service:8083"
