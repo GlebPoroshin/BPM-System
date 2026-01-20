@@ -2,11 +2,9 @@ package com.rut.glebporoshin.sop.bpm_compliance_service.tracing
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 
 
-@Configuration
 class TracingConfig {
 
     @Bean

@@ -6,13 +6,11 @@ import com.rut.glebporoshin.sop.bpm_audit_service.tracing.MdcUtils
 import com.rut.glebporoshin.sop.events.EmployeeCreatedEvent
 import com.rut.glebporoshin.sop.events.EmployeeDismissedEvent
 import org.slf4j.LoggerFactory
-import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.*
 import org.springframework.amqp.support.AmqpHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -42,45 +40,39 @@ class EmployeeEventListener(
         @Payload event: EmployeeCreatedEvent,
         channel: Channel,
         @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long,
-        message: Message,
     ) {
-        val correlationId = resolveHeaderId(message.messageProperties.correlationId)
-        val traceId = resolveHeaderId(message.messageProperties.headers["X-B3-TraceId"])
-
-        MdcUtils.withMdc(correlationId, traceId) {
-            runCatching {
-                if (!processedEmployeeCreations.add(event.employeeId)) {
-                    log.warn("Повторное событие найма для сотрудника {}", event.employeeId)
-                    channel.basicAck(deliveryTag, false)
-                    return@runCatching
-                }
-                if (event.firstName.equals("CRASH", ignoreCase = true)) {
-                    error("Смоделированная ошибка для проверки DLQ")
-                }
-
-                auditService.appendEvent(
-                    eventType = EmployeeCreatedEvent::class.simpleName ?: "EmployeeCreatedEvent",
-                    employeeId = event.employeeId,
-                    payload = event,
-                    correlationId = MdcUtils.currentCorrelationId(),
-                    traceId = MdcUtils.currentTraceId(),
-                )
-
-                log.info(
-                    "АУДИТ: создан сотрудник {} {} (ID: {}), должность: {}, отдел: {}, команда: {}, онбординг: {}",
-                    event.firstName,
-                    event.lastName,
-                    event.employeeId,
-                    event.position,
-                    event.departmentName,
-                    event.teamName,
-                    event.onboardingProcessId
-                )
+        runCatching {
+            if (!processedEmployeeCreations.add(event.employeeId)) {
+                log.warn("Повторное событие найма для сотрудника {}", event.employeeId)
                 channel.basicAck(deliveryTag, false)
-            }.onFailure { e ->
-                log.error("Ошибка обработки EmployeeCreatedEvent: {}. Отправка в DLQ", event, e)
-                channel.basicNack(deliveryTag, false, false)
+                return@runCatching
             }
+            if (event.firstName.equals("CRASH", ignoreCase = true)) {
+                error("Смоделированная ошибка для проверки DLQ")
+            }
+
+            auditService.appendEvent(
+                eventType = EmployeeCreatedEvent::class.simpleName ?: "EmployeeCreatedEvent",
+                employeeId = event.employeeId,
+                payload = event,
+                correlationId = MdcUtils.currentCorrelationId(),
+                traceId = MdcUtils.currentTraceId(),
+            )
+
+            log.info(
+                "АУДИТ: создан сотрудник {} {} (ID: {}), должность: {}, отдел: {}, команда: {}, онбординг: {}",
+                event.firstName,
+                event.lastName,
+                event.employeeId,
+                event.position,
+                event.departmentName,
+                event.teamName,
+                event.onboardingProcessId
+            )
+            channel.basicAck(deliveryTag, false)
+        }.onFailure { e ->
+            log.error("Ошибка обработки EmployeeCreatedEvent: {}. Отправка в DLQ", event, e)
+            channel.basicNack(deliveryTag, false, false)
         }
     }
 
@@ -102,39 +94,33 @@ class EmployeeEventListener(
         @Payload event: EmployeeDismissedEvent,
         channel: Channel,
         @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long,
-        message: Message,
     ) {
-        val correlationId = resolveHeaderId(message.messageProperties.correlationId)
-        val traceId = resolveHeaderId(message.messageProperties.headers["X-B3-TraceId"])
-
-        MdcUtils.withMdc(correlationId, traceId) {
-            runCatching {
-                val key = "${event.employeeId}-${event.dismissalProcessId}"
-                if (!processedEmployeeDismissals.add(key)) {
-                    log.warn("Повторное событие увольнения для сотрудника {}", event.employeeId)
-                    channel.basicAck(deliveryTag, false)
-                    return@runCatching
-                }
-
-                auditService.appendEvent(
-                    eventType = EmployeeDismissedEvent::class.simpleName ?: "EmployeeDismissedEvent",
-                    employeeId = event.employeeId,
-                    payload = event,
-                    correlationId = MdcUtils.currentCorrelationId(),
-                    traceId = MdcUtils.currentTraceId(),
-                )
-
-                log.info(
-                    "АУДИТ: увольнение сотрудника {}, процесс: {}, последний день: {}",
-                    event.employeeId,
-                    event.dismissalProcessId,
-                    event.lastWorkingDay
-                )
+        runCatching {
+            val key = "${event.employeeId}-${event.dismissalProcessId}"
+            if (!processedEmployeeDismissals.add(key)) {
+                log.warn("Повторное событие увольнения для сотрудника {}", event.employeeId)
                 channel.basicAck(deliveryTag, false)
-            }.onFailure { e ->
-                log.error("Ошибка обработки EmployeeDismissedEvent: {}. Отправка в DLQ", event, e)
-                channel.basicNack(deliveryTag, false, false)
+                return@runCatching
             }
+
+            auditService.appendEvent(
+                eventType = EmployeeDismissedEvent::class.simpleName ?: "EmployeeDismissedEvent",
+                employeeId = event.employeeId,
+                payload = event,
+                correlationId = MdcUtils.currentCorrelationId(),
+                traceId = MdcUtils.currentTraceId(),
+            )
+
+            log.info(
+                "АУДИТ: увольнение сотрудника {}, процесс: {}, последний день: {}",
+                event.employeeId,
+                event.dismissalProcessId,
+                event.lastWorkingDay
+            )
+            channel.basicAck(deliveryTag, false)
+        }.onFailure { e ->
+            log.error("Ошибка обработки EmployeeDismissedEvent: {}. Отправка в DLQ", event, e)
+            channel.basicNack(deliveryTag, false, false)
         }
     }
 
@@ -147,15 +133,6 @@ class EmployeeEventListener(
     )
     fun handleDlqMessages(@Payload failedMessage: Any) {
         log.error("Сообщение в DLQ аудита: {}", failedMessage)
-    }
-
-    private fun resolveHeaderId(header: Any?): String? {
-        return when (header) {
-            null -> null
-            is String -> header.trim().takeIf { it.isNotEmpty() }
-            is ByteArray -> String(header, StandardCharsets.UTF_8).trim().takeIf { it.isNotEmpty() }
-            else -> header.toString().trim().takeIf { it.isNotEmpty() }
-        }
     }
 
     companion object {
