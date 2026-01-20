@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     
     implementation("net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE")
     implementation("io.grpc:grpc-netty-shaded:1.66.0")
