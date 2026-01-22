@@ -39,7 +39,19 @@ class RootController {
 
             buildAbsoluteLink("/graphiql")
                 .withRel("graphiql")
-                .withTitle("GraphiQL IDE")
+                .withTitle("GraphiQL IDE"),
+
+            buildAbsoluteLink("/zipkin/")
+                .withRel("zipkin")
+                .withTitle("Zipkin Traces"),
+
+            buildAbsoluteLink("/prometheus/")
+                .withRel("prometheus")
+                .withTitle("Prometheus Metrics"),
+
+            buildAbsoluteLink("/grafana/")
+                .withRel("grafana")
+                .withTitle("Grafana Dashboards")
         )
         
         return rootModel
