@@ -1,7 +1,7 @@
 package com.rut.glebporoshin.sop.bpm_compliance_service.service
 
 import com.rut.glebporoshin.sop.bpm_compliance_service.config.RabbitMQConfig
-import com.rut.glebporoshin.sop.bpm_compliance_service.events.ComplianceOverdueEvent
+import com.rut.glebporoshin.sop.events.ComplianceOverdueEvent
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service

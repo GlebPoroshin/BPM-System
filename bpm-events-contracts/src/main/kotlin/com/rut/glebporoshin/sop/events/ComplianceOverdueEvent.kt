@@ -1,8 +1,7 @@
-package com.rut.glebporoshin.sop.bpm_compliance_service.events
+package com.rut.glebporoshin.sop.events
 
 import java.io.Serializable
 import java.time.Instant
-
 
 data class ComplianceOverdueEvent(
     val employeeId: String,

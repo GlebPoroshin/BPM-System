@@ -1,7 +1,7 @@
 package com.rut.glebporoshin.sop.bpm_statistics_service.service
 
 import com.rut.glebporoshin.sop.bpm_statistics_service.config.RabbitMQConfig
-import com.rut.glebporoshin.sop.bpm_statistics_service.events.StatisticsAlertEvent
+import com.rut.glebporoshin.sop.events.StatisticsAlertEvent
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service

@@ -9,6 +9,10 @@ data class StatisticsOverview(
     val byDepartment: Map<String, Int>,
     val byPosition: Map<String, Int>,
     val hiresByDate: List<DailyCount>,
+    val overdueTotal: Int,
+    val overdueByDepartment: Map<String, Int>,
+    val overdueByPosition: Map<String, Int>,
+    val overdueByTask: Map<String, Int>,
 )
 
 data class DailyCount(

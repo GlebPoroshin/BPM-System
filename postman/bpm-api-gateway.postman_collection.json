@@ -1,0 +1,1460 @@
+{
+  "info": {
+    "name": "BPM API Collection (Gateway)",
+    "description": "Requests go through the gateway at {{base_url}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.environment.set('correlation_id', 'demo-' + Date.now());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Main Service - REST",
+      "item": [
+        {
+          "name": "Root entry point (HATEOAS)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api",
+            "description": "API root entry point"
+          },
+          "response": []
+        },
+        {
+          "name": "Create employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.employeeId) {",
+                  "    pm.environment.set('last_employee_id', jsonData.employeeId);",
+                  "}",
+                  "if (jsonData.onboardingProcessId) {",
+                  "    pm.environment.set('last_onboarding_id', jsonData.onboardingProcessId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Ivanov\",\n  \"passportSeries\": \"4514\",\n  \"passportNumber\": \"789012\",\n  \"email\": \"alex.ivanov@company.com\",\n  \"phone\": \"+79995554455\",\n  \"contactEmail\": \"alex.personal@gmail.com\",\n  \"departmentId\": \"dept-001\",\n  \"teamId\": \"team-001\",\n  \"position\": \"DevOps Engineer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/employees",
+            "description": "Create new employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Dismiss employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"{{last_employee_id}}\",\n  \"lastWorkingDay\": \"2025-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/employees/dismissals",
+            "description": "Start dismissal process"
+          },
+          "response": []
+        },
+        {
+          "name": "List employees",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/employees?page=0&size=10",
+            "description": "List employees (paged)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get employee by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/employees/{{last_employee_id}}",
+            "description": "Get employee by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get onboarding status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.tasks && jsonData.tasks.length > 0) {",
+                  "        pm.environment.set('last_onboarding_task_id', jsonData.tasks[0].taskId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/onboarding/{{last_onboarding_id}}",
+            "description": "Get onboarding status via REST"
+          },
+          "response": []
+        },
+        {
+          "name": "Update onboarding task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": \"{{last_onboarding_task_id}}\",\n  \"completed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/onboarding/{{last_onboarding_id}}/tasks",
+            "description": "Update onboarding task status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Main Service - GraphQL",
+      "item": [
+        {
+          "name": "GraphQL: employees",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { employees { employeeId firstName lastName email phone position department { id name leadId } team { id name leadId } } }\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/graphql",
+            "description": "GraphQL query for all employees"
+          },
+          "response": []
+        },
+        {
+          "name": "GraphQL: employeeById",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { employeeById(id: \\\"{{last_employee_id}}\\\") { employeeId firstName lastName email phone position department { id name leadId } team { id name leadId } } }\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/graphql",
+            "description": "GraphQL query for employee by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "GraphQL: createEmployee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "var created = jsonData.data && jsonData.data.createEmployee;",
+                  "if (created && created.employeeId) {",
+                  "    pm.environment.set('last_employee_id', created.employeeId);",
+                  "}",
+                  "if (created && created.onboardingProcessId) {",
+                  "    pm.environment.set('last_onboarding_id', created.onboardingProcessId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation { createEmployee(input: { firstName: \\\"Maria\\\" lastName: \\\"Petrova\\\" passportSeries: \\\"4515\\\" passportNumber: \\\"345678\\\" email: \\\"maria.petrova@company.com\\\" phone: \\\"+79995554466\\\" contactEmail: \\\"maria.personal@gmail.com\\\" departmentId: \\\"dept-001\\\" teamId: \\\"team-001\\\" position: \\\"QA Engineer\\\" }) { employeeId onboardingProcessId position department { name } team { name } } }\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/graphql",
+            "description": "GraphQL mutation to create employee"
+          },
+          "response": []
+        },
+        {
+          "name": "GraphQL: startDismissal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation { startDismissal(input: { employeeId: \\\"{{last_employee_id}}\\\" lastWorkingDay: \\\"2025-12-31\\\" }) { employeeId dismissalProcessId } }\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/graphql",
+            "description": "GraphQL mutation to start dismissal"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit Service",
+      "item": [
+        {
+          "name": "List audit records",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "if (Array.isArray(jsonData) && jsonData.length > 0) {",
+                  "    pm.environment.set('audit_sequence', jsonData[0].sequence);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/records?offset=0&limit=50",
+            "description": "List audit records"
+          },
+          "response": []
+        },
+        {
+          "name": "Get audit record by sequence",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/records/{{audit_sequence}}",
+            "description": "Get audit record by sequence"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/stats",
+            "description": "Audit stats"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit verify chain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/verify",
+            "description": "Audit verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit export (json)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/export?format=json",
+            "description": "Audit export JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit export (csv)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/audit/export?format=csv",
+            "description": "Audit export CSV"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Compliance Service",
+      "item": [
+        {
+          "name": "Compliance summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/summary",
+            "description": "Compliance summary"
+          },
+          "response": []
+        },
+        {
+          "name": "Compliance records",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "if (Array.isArray(jsonData) && jsonData.length > 0) {",
+                  "    pm.environment.set('compliance_employee_id', jsonData[0].employeeId);",
+                  "    if (jsonData[0].tasks && jsonData[0].tasks.length > 0) {",
+                  "        pm.environment.set('compliance_task_id', jsonData[0].tasks[0].taskId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/records",
+            "description": "Compliance records"
+          },
+          "response": []
+        },
+        {
+          "name": "Compliance record by employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/records/{{compliance_employee_id}}",
+            "description": "Compliance record by employeeId"
+          },
+          "response": []
+        },
+        {
+          "name": "Assign compliance task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([202, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignee\": \"user-1\",\n  \"actor\": \"compliance-bot\",\n  \"comment\": \"Assign for review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/compliance/{{compliance_employee_id}}/tasks/{{compliance_task_id}}/assign",
+            "description": "Assign compliance task"
+          },
+          "response": []
+        },
+        {
+          "name": "Complete compliance task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([202, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actor\": \"compliance-bot\",\n  \"comment\": \"Completed by API\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/compliance/{{compliance_employee_id}}/tasks/{{compliance_task_id}}/complete",
+            "description": "Complete compliance task"
+          },
+          "response": []
+        },
+        {
+          "name": "Compliance overdue list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/overdue",
+            "description": "List overdue tasks"
+          },
+          "response": []
+        },
+        {
+          "name": "Compliance overdue check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/overdue/check",
+            "description": "Trigger overdue check"
+          },
+          "response": []
+        },
+        {
+          "name": "List compliance templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/templates",
+            "description": "List compliance templates"
+          },
+          "response": []
+        },
+        {
+          "name": "Create compliance template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.templateId) {",
+                  "    pm.environment.set('last_template_id', jsonData.templateId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Onboarding checklist\",\n  \"departmentName\": \"Operations\",\n  \"positionRegex\": \"Engineer\",\n  \"tasks\": [\n    {\n      \"name\": \"Verify identity documents\",\n      \"slaDays\": 2\n    },\n    {\n      \"name\": \"Grant access to systems\",\n      \"slaDays\": 3\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/compliance/templates",
+            "description": "Create compliance template"
+          },
+          "response": []
+        },
+        {
+          "name": "Update compliance template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Onboarding checklist (updated)\",\n  \"departmentName\": \"Operations\",\n  \"positionRegex\": \"Engineer\",\n  \"tasks\": [\n    {\n      \"name\": \"Verify identity documents\",\n      \"slaDays\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/compliance/templates/{{last_template_id}}",
+            "description": "Update compliance template"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete compliance template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/compliance/templates/{{last_template_id}}",
+            "description": "Delete compliance template"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Statistics Service",
+      "item": [
+        {
+          "name": "Statistics overview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/overview",
+            "description": "Statistics overview"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics time-series",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/time-series?from=2024-01-01&to=2024-12-31",
+            "description": "Statistics time-series"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics throughput",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/throughput",
+            "description": "Statistics throughput"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics anomalies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/anomalies",
+            "description": "Statistics anomalies"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics by departments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/departments",
+            "description": "Statistics by departments"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics by positions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/positions",
+            "description": "Statistics by positions"
+          },
+          "response": []
+        },
+        {
+          "name": "Statistics employees",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/statistics/employees",
+            "description": "Statistics employees"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications Service",
+      "item": [
+        {
+          "name": "Notifications stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/notifications/stats",
+            "description": "Notifications stats"
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications unicast",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"test-user\",\n  \"message\": \"Hello user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/notifications/unicast",
+            "description": "Send notification to a specific user"
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications broadcast",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "Hello all users"
+            },
+            "url": "{{base_url}}/api/notifications/broadcast",
+            "description": "Broadcast notification to all connected users"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fault Injection (optional)",
+      "item": [
+        {
+          "name": "Trigger audit DLQ (CRASH firstName)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{correlation_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"CRASH\",\n  \"lastName\": \"Test\",\n  \"passportSeries\": \"4514\",\n  \"passportNumber\": \"000000\",\n  \"email\": \"crash.test@company.com\",\n  \"phone\": \"+79990000000\",\n  \"contactEmail\": \"crash.personal@gmail.com\",\n  \"departmentId\": \"dept-001\",\n  \"teamId\": \"team-001\",\n  \"position\": \"QA Engineer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/employees",
+            "description": "Creates employee that triggers DLQ in audit service"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "correlation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "last_employee_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "last_onboarding_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "last_onboarding_task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "audit_sequence",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "compliance_employee_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "compliance_task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "last_template_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

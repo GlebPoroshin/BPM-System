@@ -1,6 +1,7 @@
 package com.rut.glebporoshin.sop.bpm_statistics_service.service
 
-import com.rut.glebporoshin.sop.bpm_statistics_service.events.StatisticsAlertEvent
+import com.rut.glebporoshin.sop.events.ComplianceOverdueEvent
+import com.rut.glebporoshin.sop.events.StatisticsAlertEvent
 import com.rut.glebporoshin.sop.bpm_statistics_service.model.DailyCount
 import com.rut.glebporoshin.sop.bpm_statistics_service.model.StatisticsAnomaly
 import com.rut.glebporoshin.sop.bpm_statistics_service.model.StatisticsOverview
@@ -29,6 +30,9 @@ class StatisticsService(
     private val recentHires = ArrayDeque<Instant>()
     private val anomalies = CopyOnWriteArrayList<StatisticsAnomaly>()
     private val anomalyKeys = ConcurrentHashMap.newKeySet<String>()
+    private val overdueByDepartment = ConcurrentHashMap<String, Int>()
+    private val overdueByPosition = ConcurrentHashMap<String, Int>()
+    private val overdueByTask = ConcurrentHashMap<String, Int>()
 
     data class EmployeeStatistic(
         val employeeId: String,
@@ -74,6 +78,10 @@ class StatisticsService(
             byDepartment = hiresByDepartment.toMap(),
             byPosition = hiresByPosition.toMap(),
             hiresByDate = dateCounts,
+            overdueTotal = overdueByTask.values.sum(),
+            overdueByDepartment = overdueByDepartment.toMap(),
+            overdueByPosition = overdueByPosition.toMap(),
+            overdueByTask = overdueByTask.toMap(),
         )
     }
 
@@ -106,6 +114,24 @@ class StatisticsService(
     fun getByDepartment(): Map<String, Int> = hiresByDepartment.toMap()
 
     fun getByPosition(): Map<String, Int> = hiresByPosition.toMap()
+
+    fun recordComplianceOverdue(event: ComplianceOverdueEvent) {
+        val department = event.departmentName.ifBlank { "unknown" }
+        val position = event.position.ifBlank { "unknown" }
+        val taskType = event.taskName.ifBlank { event.taskId }
+
+        overdueByDepartment.merge(department, 1) { current, one -> current + one }
+        overdueByPosition.merge(position, 1) { current, one -> current + one }
+        overdueByTask.merge(taskType, 1) { current, one -> current + one }
+
+        log.warn(
+            "СТАТИСТИКА: просрочена комплаенс-задача {} для сотрудника {} (отдел={}, должность={})",
+            event.taskId,
+            event.employeeId,
+            department,
+            position
+        )
+    }
 
     private fun updateRecentHires(timestamp: Instant) {
         synchronized(recentHires) {

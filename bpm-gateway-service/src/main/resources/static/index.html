@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>WebSocket Notifications</title>
@@ -37,7 +37,7 @@
             const url = new URL(window.location.href);
             const userId = url.searchParams.get('userId');
             const userParam = userId ? `?userId=${encodeURIComponent(userId)}` : '';
-            socket = new WebSocket(`${protocol}//${location.hostname}:8086/ws/notifications${userParam}`);
+            socket = new WebSocket(`${protocol}//${location.host}/ws/notifications${userParam}`);
 
             socket.onopen = () => {
                 reconnectAttempts = 0;

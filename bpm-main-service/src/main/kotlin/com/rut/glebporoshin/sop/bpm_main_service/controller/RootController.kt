@@ -2,12 +2,14 @@ package com.rut.glebporoshin.sop.bpm_main_service.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.hateoas.Link
 import org.springframework.hateoas.RepresentationModel
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 @RestController
 @RequestMapping("/api")
@@ -26,24 +28,28 @@ class RootController {
             linkTo(methodOn(EmployeeController::class.java).getAllEmployees(0, 10))
                 .withRel("employees")
                 .withTitle("Employee Management"),
-            
-            linkTo(RootController::class.java)
-                .slash("/swagger-ui.html")
+
+            buildAbsoluteLink("/swagger-ui.html")
                 .withRel("documentation")
                 .withTitle("API Documentation"),
-            
-            linkTo(RootController::class.java)
-                .slash("/graphql")
+
+            buildAbsoluteLink("/graphql")
                 .withRel("graphql")
                 .withTitle("GraphQL API"),
-            
-            linkTo(RootController::class.java)
-                .slash("/graphiql")
+
+            buildAbsoluteLink("/graphiql")
                 .withRel("graphiql")
                 .withTitle("GraphiQL IDE")
         )
         
         return rootModel
     }
-}
 
+    private fun buildAbsoluteLink(path: String): Link =
+        Link.of(
+            ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(path)
+                .build()
+                .toUriString()
+        )
+}

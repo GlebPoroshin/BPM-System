@@ -1,6 +1,6 @@
 package com.rut.glebporoshin.sop.bpm_compliance_service.service
 
-import com.rut.glebporoshin.sop.bpm_compliance_service.events.ComplianceOverdueEvent
+import com.rut.glebporoshin.sop.events.ComplianceOverdueEvent
 import com.rut.glebporoshin.sop.bpm_compliance_service.tracing.MdcUtils
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

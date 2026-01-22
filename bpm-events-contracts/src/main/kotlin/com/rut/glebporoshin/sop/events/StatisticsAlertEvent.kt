@@ -1,9 +1,8 @@
-package com.rut.glebporoshin.sop.bpm_statistics_service.events
+package com.rut.glebporoshin.sop.events
 
 import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
-
 
 data class StatisticsAlertEvent(
     val alertId: String,
